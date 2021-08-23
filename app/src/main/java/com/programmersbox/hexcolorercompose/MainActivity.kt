@@ -14,12 +14,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -128,7 +127,31 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         sheetContent = {
-                            Divider()
+
+                            Divider(color = fontColor.copy(alpha = .12f))
+
+                            Text(
+                                "Red: ${(backgroundColor.red * 255).toInt()}",
+                                fontSize = 45.sp,
+                                textAlign = TextAlign.Center,
+                                color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                            )
+
+                            Text(
+                                "Green: ${(backgroundColor.green * 255).toInt()}",
+                                fontSize = 45.sp,
+                                textAlign = TextAlign.Center,
+                                color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                            )
+
+                            Text(
+                                "Blue: ${(backgroundColor.blue * 255).toInt()}",
+                                fontSize = 45.sp,
+                                textAlign = TextAlign.Center,
+                                color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                            )
+
+                            /*Divider()
                             SettingButton(text = "Random Color", fontColor = fontColor, backgroundColor = animatedBackground) {
                                 hexColor = Integer.toHexString(
                                     Color(
@@ -144,9 +167,9 @@ class MainActivity : ComponentActivity() {
                                     if (scaffoldState.drawerState.isOpen) scaffoldState.drawerState.close()
                                     else scaffoldState.drawerState.open()
                                 }
-                            }
+                            }*/
                         },
-                        sheetShape = RoundedCornerShape(5.dp),
+                        sheetBackgroundColor = animatedBackground,
                         drawerBackgroundColor = animatedBackground,
                         sheetElevation = 5.dp,
                         sheetPeekHeight = 0.dp,
@@ -190,7 +213,7 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
                                     ) {
-                                        Icon(imageVector = Icons.Default.Menu, contentDescription = null, tint = fontColor)
+                                        Icon(imageVector = Icons.Default.Info, contentDescription = null, tint = fontColor)
                                     }
 
                                     IconButton(
@@ -282,7 +305,7 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 DigitItem("⊗", fontColor) { hexColor = "" }
                                 DigitItem("0", fontColor, onPress)
-                                DigitItem("←", fontColor) { hexColor = hexColor.dropLast(1) }
+                                DigitItem("⌫", fontColor) { hexColor = hexColor.dropLast(1) }
                             }
 
                         }

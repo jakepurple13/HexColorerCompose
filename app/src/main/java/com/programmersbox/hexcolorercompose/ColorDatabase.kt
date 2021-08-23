@@ -27,7 +27,7 @@ abstract class ColorDatabase : RoomDatabase() {
 @Dao
 interface ColorDao {
 
-    @Query("SELECT * FROM Color ORDER BY time DESC")
+    @Query("SELECT * FROM Color ORDER BY time ASC")
     fun getAllColors(): Flow<List<ColorItem>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
