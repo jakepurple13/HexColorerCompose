@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -131,7 +130,7 @@ class MainActivity : ComponentActivity() {
                                 "Red: ${(backgroundColor.red * 255).toInt()}",
                                 fontSize = 45.sp,
                                 textAlign = TextAlign.Center,
-                                color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                                color = fontColor,
                                 modifier = Modifier.padding(start = 5.dp)
                             )
 
@@ -139,7 +138,7 @@ class MainActivity : ComponentActivity() {
                                 "Green: ${(backgroundColor.green * 255).toInt()}",
                                 fontSize = 45.sp,
                                 textAlign = TextAlign.Center,
-                                color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                                color = fontColor,
                                 modifier = Modifier.padding(start = 5.dp)
                             )
 
@@ -147,7 +146,7 @@ class MainActivity : ComponentActivity() {
                                 "Blue: ${(backgroundColor.blue * 255).toInt()}",
                                 fontSize = 45.sp,
                                 textAlign = TextAlign.Center,
-                                color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                                color = fontColor,
                                 modifier = Modifier.padding(start = 5.dp)
                             )
 
@@ -351,17 +350,4 @@ fun RowScope.DigitItem(digit: String, fontColor: Color, onPress: (String) -> Uni
             ) { onPress(digit) }
             .weight(1f)
     )
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    HexColorerComposeTheme {
-        Greeting("Android")
-    }
 }
