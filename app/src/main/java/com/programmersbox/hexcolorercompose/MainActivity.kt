@@ -85,7 +85,6 @@ class MainActivity : ComponentActivity() {
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         drawerContent = {
-
                             Scaffold(
                                 topBar = {
                                     TopAppBar(
@@ -101,7 +100,6 @@ class MainActivity : ComponentActivity() {
                                 },
                                 backgroundColor = animatedBackground
                             ) { p ->
-
                                 LazyColumn(
                                     verticalArrangement = Arrangement.spacedBy(5.dp),
                                     contentPadding = p
@@ -123,7 +121,6 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
-
                             }
                         },
                         sheetContent = {
@@ -135,6 +132,7 @@ class MainActivity : ComponentActivity() {
                                 fontSize = 45.sp,
                                 textAlign = TextAlign.Center,
                                 color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                                modifier = Modifier.padding(start = 5.dp)
                             )
 
                             Text(
@@ -142,6 +140,7 @@ class MainActivity : ComponentActivity() {
                                 fontSize = 45.sp,
                                 textAlign = TextAlign.Center,
                                 color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                                modifier = Modifier.padding(start = 5.dp)
                             )
 
                             Text(
@@ -149,6 +148,7 @@ class MainActivity : ComponentActivity() {
                                 fontSize = 45.sp,
                                 textAlign = TextAlign.Center,
                                 color = if (backgroundColor.luminance() > .5f) Color.Black else Color.White,
+                                modifier = Modifier.padding(start = 5.dp)
                             )
 
                             /*Divider()
