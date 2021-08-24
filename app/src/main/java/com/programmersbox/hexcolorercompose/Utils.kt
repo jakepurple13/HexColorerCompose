@@ -80,7 +80,11 @@ class _embedded()
 
 data class _links(val self: Self?)
 
-fun getColorApi(color: String) = getJsonApi<ColorApi>("http://thecolorapi.com/id?hex=$color")
+fun getColorApi(color: String) = try {
+    getJsonApi<ColorApi>("http://thecolorapi.com/id?hex=$color")
+} catch (e: Exception) {
+    null
+}
 
 @ExperimentalPermissionsApi
 @Composable

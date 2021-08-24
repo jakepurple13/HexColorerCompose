@@ -7,10 +7,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -121,16 +118,53 @@ class MainActivity : ComponentActivity() {
                     CameraView { showCameraPopup = false }
                 }
 
+                var showPopup by remember { mutableStateOf(false) }
+                var deleteColor by remember { mutableStateOf<ColorItem?>(null) }
+
+                if (showPopup && deleteColor != null) {
+
+                    val onDismiss = { showPopup = false }
+
+                    val c = Color("#${deleteColor!!.color}".toColorInt())
+
+                    AlertDialog(
+                        onDismissRequest = onDismiss,
+                        title = {
+                            Text(
+                                "Remove #${deleteColor!!.color}",
+                                color = if (c.luminance() > .5f) Color.Black else Color.White
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    onDismiss()
+                                    scope.launch(Dispatchers.IO) { dao.deleteColor(deleteColor!!) }
+                                },
+                                colors = ButtonDefaults.textButtonColors(backgroundColor = c)
+                            ) { Text("Yes", color = if (c.luminance() > .5f) Color.Black else Color.White) }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = onDismiss,
+                                colors = ButtonDefaults.textButtonColors(backgroundColor = c)
+                            ) { Text("No", color = if (c.luminance() > .5f) Color.Black else Color.White) }
+                        },
+                        backgroundColor = c
+                    )
+
+                }
+
                 Surface(color = animatedBackground) {
 
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         drawerContent = {
-                            Scaffold(
-                                topBar = {
-                                    TopAppBar(
-                                        backgroundColor = animatedBackground
-                                    ) {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(5.dp),
+                            ) {
+                                item {
+                                    TopAppBar(backgroundColor = animatedBackground) {
                                         Text(
                                             "Saved Colors: ${savedColors.size}",
                                             fontSize = 45.sp,
@@ -138,30 +172,33 @@ class MainActivity : ComponentActivity() {
                                             color = fontColor,
                                         )
                                     }
-                                },
-                                backgroundColor = animatedBackground
-                            ) { p ->
-                                LazyColumn(
-                                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                                    contentPadding = p
-                                ) {
-                                    items(savedColors) {
-                                        val c = Color("#${it.color}".toColorInt())
+                                }
 
-                                        Card(
-                                            onClick = { hexColor = it.color },
-                                            backgroundColor = c,
-                                            modifier = Modifier.fillMaxWidth(),
-                                            shape = RoundedCornerShape(CornerSize(0.dp))
-                                        ) {
-                                            Text(
-                                                "#${it.color}",
-                                                fontSize = 45.sp,
-                                                textAlign = TextAlign.Center,
-                                                color = if (c.luminance() > .5f) Color.Black else Color.White,
+                                items(savedColors) {
+                                    val c = Color("#${it.color}".toColorInt())
+                                    Text(
+                                        "#${it.color}",
+                                        fontSize = 45.sp,
+                                        textAlign = TextAlign.Center,
+                                        color = if (c.luminance() > .5f) Color.Black else Color.White,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .combinedClickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = LocalIndication.current,
+                                                onLongClick = {
+                                                    deleteColor = it
+                                                    showPopup = true
+                                                },
+                                                onClick = { hexColor = it.color },
+                                                onDoubleClick = {
+                                                    hexColor = it.color
+                                                    deleteColor = it
+                                                    showPopup = true
+                                                }
                                             )
-                                        }
-                                    }
+                                            .background(c)
+                                    )
                                 }
                             }
                         },
@@ -293,8 +330,7 @@ class MainActivity : ComponentActivity() {
                                         onClick = {
                                             scope.launch {
                                                 if (savedColors.any { it.color == hexColor }) {
-                                                    val item = savedColors.find { it.color == hexColor }
-                                                    item?.let { dao.deleteColor(it) }
+                                                    savedColors.find { it.color == hexColor }?.let { dao.deleteColor(it) }
                                                 } else {
                                                     dao.insertColor(ColorItem(color = hexColor))
                                                 }
@@ -305,7 +341,7 @@ class MainActivity : ComponentActivity() {
                                             imageVector = Icons.Default.Add,
                                             contentDescription = null,
                                             tint = fontColor,
-                                            modifier = Modifier.rotate(animateFloatAsState(targetValue = if (savedColors.any { it.color == hexColor }) 45f else 0f).value)
+                                            modifier = Modifier.rotate(animateFloatAsState(targetValue = if (savedColors.any { it.color == hexColor }) 135f else 0f).value)
                                         )
                                     }
                                 },
@@ -317,9 +353,7 @@ class MainActivity : ComponentActivity() {
                                                 else scaffoldState.bottomSheetState.collapse()
                                             }
                                         }
-                                    ) {
-                                        Icon(imageVector = Icons.Default.Info, contentDescription = null, tint = fontColor)
-                                    }
+                                    ) { Icon(imageVector = Icons.Default.Info, contentDescription = null, tint = fontColor) }
 
                                     IconButton(
                                         onClick = {
@@ -331,9 +365,7 @@ class MainActivity : ComponentActivity() {
                                                 ).toArgb()
                                             ).drop(2)
                                         }
-                                    ) {
-                                        Icon(imageVector = Icons.Default.Refresh, contentDescription = null, tint = fontColor)
-                                    }
+                                    ) { Icon(imageVector = Icons.Default.Refresh, contentDescription = null, tint = fontColor) }
                                 },
                                 backgroundColor = animatedBackground
                             )
