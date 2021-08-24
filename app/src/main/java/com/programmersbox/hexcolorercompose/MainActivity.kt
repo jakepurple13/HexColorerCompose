@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -31,8 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.graphics.toColorInt
+import androidx.datastore.preferences.core.edit
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.programmersbox.hexcolorercompose.ui.theme.HexColorerComposeTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -44,6 +48,8 @@ class MainActivity : ComponentActivity() {
 
         val dao = ColorDatabase.getInstance(this).colorDao()
 
+        val dataStore = dataStore
+
         setContent {
             HexColorerComposeTheme {
 
@@ -51,10 +57,34 @@ class MainActivity : ComponentActivity() {
 
                 var hexColor by remember { mutableStateOf("") }
 
+                var colorApi by remember { mutableStateOf<ColorApi?>(null) }
+
+                val historyColors by dataStore.data
+                    .map { it[COLOR_HISTORY] ?: emptySet() }
+                    .collectAsState(initial = emptySet())
+
+                val scope = rememberCoroutineScope()
+
                 LaunchedEffect(hexColor) {
                     backgroundColor = when (hexColor.length) {
                         6 -> Color("#$hexColor".toColorInt())
                         else -> Color.Black
+                    }
+
+                    if (hexColor.length == 6) {
+                        scope.launch(Dispatchers.IO) {
+                            if (hexColor !in historyColors) {
+                                dataStore.edit {
+                                    it[COLOR_HISTORY] = historyColors.toMutableList()
+                                        .apply {
+                                            add(0, hexColor)
+                                            while (size > 5 && isNotEmpty()) removeLast()
+                                        }
+                                        .toSet()
+                                }
+                            }
+                            colorApi = getColorApi(hexColor)
+                        }
                     }
                 }
 
@@ -72,12 +102,13 @@ class MainActivity : ComponentActivity() {
                     .collectAsState(initial = emptyList())
 
                 val scaffoldState = rememberBottomSheetScaffoldState()
-                val scope = rememberCoroutineScope()
 
                 val uiController = rememberSystemUiController()
                 uiController.setStatusBarColor(animatedBackground, backgroundColor.luminance() > .5f)
                 uiController.setNavigationBarColor(animatedBackground, backgroundColor.luminance() > .5f)
                 uiController.setSystemBarsColor(animatedBackground, backgroundColor.luminance() > .5f)
+
+                var showHistoryPopup by remember { mutableStateOf(false) }
 
                 Surface(color = animatedBackground) {
 
@@ -124,49 +155,102 @@ class MainActivity : ComponentActivity() {
                         },
                         sheetContent = {
 
+                            val infoFontSize = 30.sp
+
+                            @Composable
+                            fun InfoText(text: String) {
+                                Text(
+                                    text,
+                                    fontSize = infoFontSize,
+                                    textAlign = TextAlign.Center,
+                                    color = fontColor,
+                                    modifier = Modifier.padding(start = 5.dp)
+                                )
+                            }
+
                             Divider(color = fontColor.copy(alpha = .12f))
 
-                            Text(
-                                "Red: ${(backgroundColor.red * 255).toInt()}",
-                                fontSize = 45.sp,
-                                textAlign = TextAlign.Center,
-                                color = fontColor,
-                                modifier = Modifier.padding(start = 5.dp)
-                            )
+                            if (showHistoryPopup) {
 
-                            Text(
-                                "Green: ${(backgroundColor.green * 255).toInt()}",
-                                fontSize = 45.sp,
-                                textAlign = TextAlign.Center,
-                                color = fontColor,
-                                modifier = Modifier.padding(start = 5.dp)
-                            )
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                                ) {
+                                    items(historyColors.toList()) {
+                                        val c = Color("#$it".toColorInt())
 
-                            Text(
-                                "Blue: ${(backgroundColor.blue * 255).toInt()}",
-                                fontSize = 45.sp,
-                                textAlign = TextAlign.Center,
-                                color = fontColor,
-                                modifier = Modifier.padding(start = 5.dp)
-                            )
-
-                            /*Divider()
-                            SettingButton(text = "Random Color", fontColor = fontColor, backgroundColor = animatedBackground) {
-                                hexColor = Integer.toHexString(
-                                    Color(
-                                        red = Random.nextInt(0, 255),
-                                        green = Random.nextInt(0, 255),
-                                        blue = Random.nextInt(0, 255)
-                                    ).toArgb()
-                                ).drop(2)
-                            }
-                            Divider()
-                            SettingButton(text = "Saved Colors", fontColor = fontColor, backgroundColor = animatedBackground) {
-                                scope.launch {
-                                    if (scaffoldState.drawerState.isOpen) scaffoldState.drawerState.close()
-                                    else scaffoldState.drawerState.open()
+                                        Card(
+                                            onClick = { hexColor = it },
+                                            backgroundColor = c,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                "#$it",
+                                                fontSize = 45.sp,
+                                                textAlign = TextAlign.Center,
+                                                color = if (c.luminance() > .5f) Color.Black else Color.White,
+                                            )
+                                        }
+                                    }
                                 }
-                            }*/
+
+                            } else {
+
+                                colorApi?.name?.value?.let { InfoText(it) }
+
+                                val r = (backgroundColor.red * 255).toInt().animateValue()
+                                val g = (backgroundColor.green * 255).toInt().animateValue()
+                                val b = (backgroundColor.blue * 255).toInt().animateValue()
+
+                                InfoText("RGB: ($r, $g, $b)")
+
+                                colorApi?.let { api ->
+
+                                    api.cmyk?.let { printer ->
+
+                                        val c = printer.c?.animateIntValue()
+                                        val m = printer.m?.animateIntValue()
+                                        val y = printer.y?.animateIntValue()
+                                        val k = printer.k?.animateIntValue()
+
+                                        InfoText("CMYK: ($c, $m, $y, $k)")
+                                    }
+
+                                    api.hsl?.let { printer ->
+                                        val h = printer.h?.animateIntValue()
+                                        val s = printer.s?.animateIntValue()
+                                        val l = printer.l?.animateIntValue()
+
+                                        InfoText("HSL: ($h, $s, $l)")
+                                    }
+
+                                    api.hsv?.let { printer ->
+                                        val h = printer.h?.animateIntValue()
+                                        val s = printer.s?.animateIntValue()
+                                        val v = printer.v?.animateIntValue()
+
+                                        InfoText("HSV: ($h, $s, $v)")
+                                    }
+
+                                    api.XYZ?.let { printer ->
+                                        val x = printer.X?.animateIntValue()
+                                        val y = printer.Y?.animateIntValue()
+                                        val z = printer.Z?.animateIntValue()
+
+                                        InfoText("XYZ: ($x, $y, $z)")
+                                    }
+
+                                }
+
+                            }
+
+                            Divider(color = fontColor.copy(alpha = .12f))
+
+                            SettingButton(
+                                text = "Show ${if (showHistoryPopup) "Info" else "History"}",
+                                fontColor = fontColor,
+                                backgroundColor = animatedBackground
+                            ) { showHistoryPopup = !showHistoryPopup }
+
                         },
                         sheetBackgroundColor = animatedBackground,
                         drawerBackgroundColor = animatedBackground,
@@ -351,3 +435,9 @@ fun RowScope.DigitItem(digit: String, fontColor: Color, onPress: (String) -> Uni
             .weight(1f)
     )
 }
+
+@Composable
+fun Int.animateValue() = animateIntAsState(targetValue = this).value
+
+@Composable
+fun Number.animateIntValue() = toInt().animateValue()

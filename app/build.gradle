@@ -66,6 +66,11 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.0-beta02"
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.17.0"
 
+    implementation "androidx.datastore:datastore:1.0.0"
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    implementation "com.github.jakepurple13.HelpfulTools:gsonutils:10.6.5"
+
     def room_version = "2.3.0"
 
     implementation "androidx.room:room-runtime:$room_version"
