@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.graphics.toColorInt
 import androidx.datastore.preferences.core.edit
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.programmersbox.hexcolorercompose.ui.theme.HexColorerComposeTheme
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
+    @ExperimentalPermissionsApi
     @ExperimentalMaterialApi
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,6 +115,12 @@ class MainActivity : ComponentActivity() {
 
                 var showHistoryPopup by remember { mutableStateOf(false) }
 
+                var showCameraPopup by remember { mutableStateOf(false) }
+
+                if (showCameraPopup) {
+                    CameraView { showCameraPopup = false }
+                }
+
                 Surface(color = animatedBackground) {
 
                     BottomSheetScaffold(
@@ -141,7 +151,8 @@ class MainActivity : ComponentActivity() {
                                         Card(
                                             onClick = { hexColor = it.color },
                                             backgroundColor = c,
-                                            modifier = Modifier.fillMaxWidth()
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(CornerSize(0.dp))
                                         ) {
                                             Text(
                                                 "#${it.color}",
@@ -182,7 +193,8 @@ class MainActivity : ComponentActivity() {
                                         Card(
                                             onClick = { hexColor = it },
                                             backgroundColor = c,
-                                            modifier = Modifier.fillMaxWidth()
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(CornerSize(0.dp))
                                         ) {
                                             Text(
                                                 "#$it",
@@ -251,6 +263,14 @@ class MainActivity : ComponentActivity() {
                                 fontColor = fontColor,
                                 backgroundColor = animatedBackground
                             ) { showHistoryPopup = !showHistoryPopup }
+
+                            Divider(color = fontColor.copy(alpha = .12f))
+
+                            /*SettingButton(
+                                text = "Color From Image",
+                                fontColor = fontColor,
+                                backgroundColor = animatedBackground
+                            ) { showCameraPopup = true }*/
 
                         },
                         sheetBackgroundColor = animatedBackground,
@@ -414,7 +434,7 @@ fun SettingButton(text: String, fontColor: Color, backgroundColor: Color, onClic
         Text(
             text,
             color = fontColor,
-            fontSize = 45.sp,
+            fontSize = 30.sp,
             textAlign = TextAlign.Center,
         )
     }
