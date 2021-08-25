@@ -21,16 +21,19 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.graphics.toColorInt
 import androidx.datastore.preferences.core.edit
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -52,8 +55,13 @@ class MainActivity : ComponentActivity() {
 
         val dataStore = dataStore
 
+        val history = dataStore.data.map { it[COLOR_HISTORY] ?: emptySet() }
+
         setContent {
+
             HexColorerComposeTheme {
+
+                val clipboardManager = LocalClipboardManager.current
 
                 var backgroundColor by remember { mutableStateOf(Color.Black) }
 
@@ -61,9 +69,7 @@ class MainActivity : ComponentActivity() {
 
                 var colorApi by remember { mutableStateOf<ColorApi?>(null) }
 
-                val historyColors by dataStore.data
-                    .map { it[COLOR_HISTORY] ?: emptySet() }
-                    .collectAsState(initial = emptySet())
+                val historyColors by history.collectAsState(initial = emptySet())
 
                 val scope = rememberCoroutineScope()
 
@@ -315,14 +321,38 @@ class MainActivity : ComponentActivity() {
                         sheetElevation = 5.dp,
                         sheetPeekHeight = 0.dp,
                         backgroundColor = animatedBackground,
+                        snackbarHost = {
+                            SnackbarHost(it) { data ->
+                                Snackbar(
+                                    elevation = 15.dp,
+                                    backgroundColor = backgroundColor,
+                                    contentColor = fontColor,
+                                    snackbarData = data
+                                )
+                            }
+                        },
                         topBar = {
                             TopAppBar(
                                 title = {
+
+                                    val copyToClipboard: () -> Unit = {
+                                        clipboardManager.setText(AnnotatedString("#$hexColor", ParagraphStyle()))
+                                        scope.launch { scaffoldState.snackbarHostState.showSnackbar("Copied", null, SnackbarDuration.Short) }
+                                    }
+
                                     Text(
                                         "#$hexColor",
                                         color = fontColor,
                                         fontSize = 45.sp,
-                                        textAlign = TextAlign.Center
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .combinedClickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null,
+                                                onLongClick = copyToClipboard,
+                                                onClick = {},
+                                                onDoubleClick = copyToClipboard
+                                            )
                                     )
                                 },
                                 navigationIcon = {
@@ -372,83 +402,76 @@ class MainActivity : ComponentActivity() {
                         }
                     ) {
 
-                        ConstraintLayout(
+                        Column(
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .padding(it)
-                                .padding(vertical = 5.dp)
+                                .padding(vertical = 5.dp),
+                            verticalArrangement = Arrangement.SpaceBetween
                         ) {
 
-                            val (def, abc, sen, ffs, ott, czb) = createRefs()
+                            DigitRow(
+                                start = "D",
+                                center = "E",
+                                end = "F",
+                                fontColor = fontColor,
+                                onPressStart = onPress,
+                                onPressCenter = onPress,
+                                onPressEnd = onPress
+                            )
 
-                            Row(
-                                modifier = Modifier.constrainAs(def) {
-                                    top.linkTo(parent.top)
-                                }
-                            ) {
-                                DigitItem("D", fontColor, onPress)
-                                DigitItem("E", fontColor, onPress)
-                                DigitItem("F", fontColor, onPress)
-                            }
+                            DigitRow(
+                                start = "A",
+                                center = "B",
+                                end = "C",
+                                fontColor = fontColor,
+                                onPressStart = onPress,
+                                onPressCenter = onPress,
+                                onPressEnd = onPress
+                            )
 
-                            Row(
-                                modifier = Modifier.constrainAs(abc) {
-                                    top.linkTo(def.bottom)
-                                    bottom.linkTo(sen.top)
-                                }
-                            ) {
-                                DigitItem("A", fontColor, onPress)
-                                DigitItem("B", fontColor, onPress)
-                                DigitItem("C", fontColor, onPress)
-                            }
+                            DigitRow(
+                                start = "7",
+                                center = "8",
+                                end = "9",
+                                fontColor = fontColor,
+                                onPressStart = onPress,
+                                onPressCenter = onPress,
+                                onPressEnd = onPress
+                            )
 
-                            Row(
-                                modifier = Modifier.constrainAs(sen) {
-                                    top.linkTo(abc.bottom)
-                                    bottom.linkTo(ffs.top)
-                                }
-                            ) {
-                                DigitItem("7", fontColor, onPress)
-                                DigitItem("8", fontColor, onPress)
-                                DigitItem("9", fontColor, onPress)
-                            }
+                            DigitRow(
+                                start = "4",
+                                center = "5",
+                                end = "6",
+                                fontColor = fontColor,
+                                onPressStart = onPress,
+                                onPressCenter = onPress,
+                                onPressEnd = onPress
+                            )
 
-                            Row(
-                                modifier = Modifier.constrainAs(ffs) {
-                                    top.linkTo(sen.bottom)
-                                    bottom.linkTo(ott.top)
-                                }
-                            ) {
-                                DigitItem("4", fontColor, onPress)
-                                DigitItem("5", fontColor, onPress)
-                                DigitItem("6", fontColor, onPress)
-                            }
+                            DigitRow(
+                                start = "1",
+                                center = "2",
+                                end = "3",
+                                fontColor = fontColor,
+                                onPressStart = onPress,
+                                onPressCenter = onPress,
+                                onPressEnd = onPress
+                            )
 
-                            Row(
-                                modifier = Modifier.constrainAs(ott) {
-                                    top.linkTo(ffs.bottom)
-                                    bottom.linkTo(czb.top)
-                                }
-                            ) {
-                                DigitItem("1", fontColor, onPress)
-                                DigitItem("2", fontColor, onPress)
-                                DigitItem("3", fontColor, onPress)
-                            }
-
-                            Row(
-                                modifier = Modifier.constrainAs(czb) {
-                                    bottom.linkTo(parent.bottom)
-                                }
-                            ) {
-                                DigitItem("⊗", fontColor) { hexColor = "" }
-                                DigitItem("0", fontColor, onPress)
-                                DigitItem("⌫", fontColor) { hexColor = hexColor.dropLast(1) }
-                            }
-
+                            DigitRow(
+                                start = "⊗",
+                                center = "0",
+                                end = "⌫",
+                                fontColor = fontColor,
+                                onPressStart = { hexColor = "" },
+                                onPressCenter = onPress,
+                                onPressEnd = { hexColor = hexColor.dropLast(1) }
+                            )
                         }
 
                     }
-
                 }
             }
         }
@@ -487,7 +510,33 @@ fun RowScope.DigitItem(digit: String, fontColor: Color, onPress: (String) -> Uni
                 indication = LocalIndication.current
             ) { onPress(digit) }
             .weight(1f)
+            .height(100.dp)
+            .align(Alignment.CenterVertically)
+            .wrapContentSize(unbounded = true)
     )
+}
+
+@ExperimentalFoundationApi
+@Composable
+fun DigitRow(
+    modifier: Modifier = Modifier,
+    start: String,
+    center: String,
+    end: String,
+    fontColor: Color,
+    onPressStart: (String) -> Unit,
+    onPressCenter: (String) -> Unit,
+    onPressEnd: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.then(modifier),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        DigitItem(start, fontColor, onPressStart)
+        DigitItem(center, fontColor, onPressCenter)
+        DigitItem(end, fontColor, onPressEnd)
+    }
 }
 
 @Composable
