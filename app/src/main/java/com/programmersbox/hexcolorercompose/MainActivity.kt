@@ -23,6 +23,7 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -404,6 +405,7 @@ class MainActivity : ComponentActivity() {
                         Column(
                             modifier = Modifier
                                 .fillMaxHeight()
+                                .clipToBounds()
                                 .padding(it)
                                 .padding(vertical = 5.dp),
                         ) {
