@@ -12,7 +12,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -20,10 +19,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -407,10 +406,12 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxHeight()
                                 .padding(it)
                                 .padding(vertical = 5.dp),
-                            verticalArrangement = Arrangement.SpaceBetween
                         ) {
 
+                            val m = Modifier.weight(1f / 6f)
+
                             DigitRow(
+                                modifier = m,
                                 start = "D",
                                 center = "E",
                                 end = "F",
@@ -421,6 +422,7 @@ class MainActivity : ComponentActivity() {
                             )
 
                             DigitRow(
+                                modifier = m,
                                 start = "A",
                                 center = "B",
                                 end = "C",
@@ -431,6 +433,7 @@ class MainActivity : ComponentActivity() {
                             )
 
                             DigitRow(
+                                modifier = m,
                                 start = "7",
                                 center = "8",
                                 end = "9",
@@ -441,6 +444,7 @@ class MainActivity : ComponentActivity() {
                             )
 
                             DigitRow(
+                                modifier = m,
                                 start = "4",
                                 center = "5",
                                 end = "6",
@@ -451,6 +455,7 @@ class MainActivity : ComponentActivity() {
                             )
 
                             DigitRow(
+                                modifier = m,
                                 start = "1",
                                 center = "2",
                                 end = "3",
@@ -461,6 +466,7 @@ class MainActivity : ComponentActivity() {
                             )
 
                             DigitRow(
+                                modifier = m,
                                 start = "⊗",
                                 center = "0",
                                 end = "⌫",
@@ -497,22 +503,18 @@ fun SettingButton(text: String, fontColor: Color, backgroundColor: Color, onClic
 
 @ExperimentalFoundationApi
 @Composable
-fun RowScope.DigitItem(digit: String, fontColor: Color, onPress: (String) -> Unit) {
+fun DigitItem(modifier: Modifier = Modifier, digit: String, fontColor: Color, onPress: (String) -> Unit) {
     Text(
         digit,
         color = fontColor,
         fontSize = 45.sp,
         textAlign = TextAlign.Center,
         modifier = Modifier
-            .clip(CircleShape)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = LocalIndication.current
+                indication = rememberRipple(bounded = false),
             ) { onPress(digit) }
-            .weight(1f)
-            .height(100.dp)
-            .align(Alignment.CenterVertically)
-            .wrapContentSize(unbounded = true)
+            .then(modifier)
     )
 }
 
@@ -533,9 +535,15 @@ fun DigitRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        DigitItem(start, fontColor, onPressStart)
-        DigitItem(center, fontColor, onPressCenter)
-        DigitItem(end, fontColor, onPressEnd)
+        val m = Modifier
+            .weight(1f)
+            .fillMaxHeight(1f)
+            .wrapContentHeight(unbounded = true)
+            .align(Alignment.CenterVertically)
+
+        DigitItem(m, start, fontColor, onPressStart)
+        DigitItem(m, center, fontColor, onPressCenter)
+        DigitItem(m, end, fontColor, onPressEnd)
     }
 }
 
