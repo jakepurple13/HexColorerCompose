@@ -73,13 +73,15 @@ class MainActivity : ComponentActivity() {
 
                 val scope = rememberCoroutineScope()
 
-                LaunchedEffect(hexColor) {
+                var showColorPickerPopup by remember { mutableStateOf(false) }
+
+                LaunchedEffect(hexColor, showColorPickerPopup) {
                     backgroundColor = when (hexColor.length) {
                         6 -> Color("#$hexColor".toColorInt())
                         else -> Color.Black
                     }
 
-                    if (hexColor.length == 6) {
+                    if (hexColor.length == 6 && !showColorPickerPopup) {
                         scope.launch(Dispatchers.IO) {
                             if (hexColor !in historyColors) {
                                 dataStore.edit {
@@ -118,10 +120,10 @@ class MainActivity : ComponentActivity() {
 
                 var showHistoryPopup by remember { mutableStateOf(false) }
 
-                var showCameraPopup by remember { mutableStateOf(false) }
-
-                if (showCameraPopup) {
-                    CameraView { showCameraPopup = false }
+                if (showColorPickerPopup) {
+                    ColorPickerView(
+                        onColorChange = { hexColor = Integer.toHexString(it.toArgb()).drop(2) }
+                    ) { showColorPickerPopup = false }
                 }
 
                 var showPopup by remember { mutableStateOf(false) }
@@ -309,11 +311,11 @@ class MainActivity : ComponentActivity() {
 
                             Divider(color = fontColor.copy(alpha = .12f))
 
-                            /*SettingButton(
-                                text = "Color From Image",
+                            SettingButton(
+                                text = "Color Picker",
                                 fontColor = fontColor,
                                 backgroundColor = animatedBackground
-                            ) { showCameraPopup = true }*/
+                            ) { showColorPickerPopup = true }
 
                         },
                         sheetBackgroundColor = animatedBackground,
