@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
@@ -56,6 +57,15 @@ class MainActivity : ComponentActivity() {
         val dataStore = dataStore
 
         val history = dataStore.data.map { it[COLOR_HISTORY] ?: emptySet() }
+        val favorites = dao
+            .getAllColors()
+            .map {
+                it.sortedBy { c ->
+                    val hsv = floatArrayOf(0f, 0f, 0f)
+                    android.graphics.Color.colorToHSV(android.graphics.Color.parseColor("#${c.color}"), hsv)
+                    hsv[0]
+                }
+            }
 
         setContent {
 
@@ -107,9 +117,7 @@ class MainActivity : ComponentActivity() {
 
                 val animatedBackground = animateColorAsState(backgroundColor, animationSpec = tween(500)).value
 
-                val savedColors by dao
-                    .getAllColors()
-                    .collectAsState(initial = emptyList())
+                val savedColors by favorites.collectAsState(initial = emptyList())
 
                 val scaffoldState = rememberBottomSheetScaffoldState()
 
@@ -168,8 +176,13 @@ class MainActivity : ComponentActivity() {
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         drawerContent = {
+
+                            val c1 = if (savedColors.isNotEmpty()) savedColors.map { Color("#${it.color}".toColorInt()) }
+                            else listOf(MaterialTheme.colors.surface, MaterialTheme.colors.surface)
+
                             LazyColumn(
                                 verticalArrangement = Arrangement.spacedBy(5.dp),
+                                modifier = Modifier.background(Brush.verticalGradient(c1))
                             ) {
                                 item {
                                     TopAppBar(backgroundColor = animatedBackground) {
@@ -319,7 +332,7 @@ class MainActivity : ComponentActivity() {
 
                         },
                         sheetBackgroundColor = animatedBackground,
-                        drawerBackgroundColor = animatedBackground,
+                        //drawerBackgroundColor = animatedBackground,
                         sheetElevation = 5.dp,
                         sheetPeekHeight = 0.dp,
                         backgroundColor = animatedBackground,
