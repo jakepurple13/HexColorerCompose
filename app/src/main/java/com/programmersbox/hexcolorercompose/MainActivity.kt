@@ -2,6 +2,7 @@ package com.programmersbox.hexcolorercompose
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -496,6 +497,24 @@ class MainActivity : ComponentActivity() {
 
                     }
                 }
+
+                val backCallBack = remember {
+                    object : OnBackPressedCallback(true) {
+                        override fun handleOnBackPressed() {
+                            when {
+                                scaffoldState.drawerState.isOpen -> scope.launch { scaffoldState.drawerState.close() }
+                                scaffoldState.bottomSheetState.isExpanded -> scope.launch { scaffoldState.bottomSheetState.collapse() }
+                                else -> finish()
+                            }
+                        }
+                    }
+                }
+
+                DisposableEffect(key1 = onBackPressedDispatcher) {
+                    onBackPressedDispatcher.addCallback(backCallBack)
+                    onDispose { backCallBack.remove() }
+                }
+
             }
         }
     }
