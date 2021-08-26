@@ -152,7 +152,7 @@ class MainActivity : ComponentActivity() {
                         sheetBackgroundColor = bottomColor,
                         //drawerBackgroundColor = animatedBackground,
                         sheetElevation = 5.dp,
-                        sheetPeekHeight = if (model.showHistoryPopup) BottomSheetScaffoldDefaults.SheetPeekHeight else 40.dp,
+                        sheetPeekHeight = 40.dp,
                         backgroundColor = animatedBackground,
                         snackbarHost = {
                             SnackbarHost(it) { data ->

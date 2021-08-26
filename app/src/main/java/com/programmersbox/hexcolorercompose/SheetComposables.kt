@@ -74,29 +74,6 @@ fun Sheet(
 
     Divider(color = fontColor.copy(alpha = .12f))
 
-    if (model.showHistoryPopup) {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(5.dp),
-        ) {
-            items(historyColors.toList()) {
-                val c = Color("#$it".toColorInt())
-                Card(
-                    onClick = { model.hexColor = it },
-                    backgroundColor = c,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(CornerSize(0.dp))
-                ) {
-                    Text(
-                        "#$it",
-                        fontSize = 45.sp,
-                        textAlign = TextAlign.Center,
-                        color = if (c.luminance() > .5f) Color.Black else Color.White,
-                    )
-                }
-            }
-        }
-    } else {
-
         model.colorApi?.name?.value?.let { InfoText(it) }
 
         val r = (backgroundColor.red * 255).toInt().animateValue()
@@ -137,16 +114,6 @@ fun Sheet(
 
         }
 
-    }
-
-    Divider(color = fontColor.copy(alpha = .12f))
-
-    SettingButton(
-        text = "Show ${if (model.showHistoryPopup) "Info" else "History"}",
-        fontColor = fontColor,
-        backgroundColor = Color.Transparent
-    ) { model.showHistoryPopup = !model.showHistoryPopup }
-
     Divider(color = fontColor.copy(alpha = .12f))
 
     SettingButton(
@@ -154,6 +121,37 @@ fun Sheet(
         fontColor = fontColor,
         backgroundColor = Color.Transparent
     ) { model.showColorPickerPopup = true }
+
+    Divider(color = fontColor.copy(alpha = .12f))
+
+    SettingButton(
+        text = "${if (model.showHistoryPopup) "Hide" else "Show"} History",
+        fontColor = fontColor,
+        backgroundColor = Color.Transparent
+    ) { model.showHistoryPopup = !model.showHistoryPopup }
+
+    if (model.showHistoryPopup) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            items(historyColors.toList()) {
+                val c = Color("#$it".toColorInt())
+                Card(
+                    onClick = { model.hexColor = it },
+                    backgroundColor = c,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(CornerSize(0.dp))
+                ) {
+                    Text(
+                        "#$it",
+                        fontSize = 45.sp,
+                        textAlign = TextAlign.Center,
+                        color = if (c.luminance() > .5f) Color.Black else Color.White,
+                    )
+                }
+            }
+        }
+    }
 
 }
 
