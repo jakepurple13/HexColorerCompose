@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -44,6 +45,7 @@ import com.programmersbox.hexcolorercompose.ui.theme.HexColorerComposeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import my.nanihadesuka.compose.LazyColumnScrollbar
 import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
@@ -143,15 +145,11 @@ class MainActivity : ComponentActivity() {
                     val onDismiss = { showPopup = false }
 
                     val c = Color("#${deleteColor!!.color}".toColorInt())
+                    val font = if (c.luminance() > .5f) Color.Black else Color.White
 
                     AlertDialog(
                         onDismissRequest = onDismiss,
-                        title = {
-                            Text(
-                                "Remove #${deleteColor!!.color}",
-                                color = if (c.luminance() > .5f) Color.Black else Color.White
-                            )
-                        },
+                        title = { Text("Remove #${deleteColor!!.color}", color = font) },
                         confirmButton = {
                             TextButton(
                                 onClick = {
@@ -159,13 +157,13 @@ class MainActivity : ComponentActivity() {
                                     scope.launch(Dispatchers.IO) { dao.deleteColor(deleteColor!!) }
                                 },
                                 colors = ButtonDefaults.textButtonColors(backgroundColor = c)
-                            ) { Text("Yes", color = if (c.luminance() > .5f) Color.Black else Color.White) }
+                            ) { Text("Yes", color = font) }
                         },
                         dismissButton = {
                             TextButton(
                                 onClick = onDismiss,
                                 colors = ButtonDefaults.textButtonColors(backgroundColor = c)
-                            ) { Text("No", color = if (c.luminance() > .5f) Color.Black else Color.White) }
+                            ) { Text("No", color = font) }
                         },
                         backgroundColor = c
                     )
@@ -180,47 +178,54 @@ class MainActivity : ComponentActivity() {
 
                             val c1 = if (savedColors.isNotEmpty()) savedColors.map { Color("#${it.color}".toColorInt()) }
                             else listOf(MaterialTheme.colors.surface, MaterialTheme.colors.surface)
-
-                            LazyColumn(
-                                verticalArrangement = Arrangement.spacedBy(5.dp),
-                                modifier = Modifier.background(Brush.verticalGradient(c1))
+                            val listState = rememberLazyListState()
+                            LazyColumnScrollbar(
+                                listState = listState,
+                                thumbColor = MaterialTheme.colors.surface.copy(alpha = .5f),
+                                thumbSelectedColor = MaterialTheme.colors.surface
                             ) {
-                                item {
-                                    TopAppBar(backgroundColor = animatedBackground) {
+                                LazyColumn(
+                                    state = listState,
+                                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                                    modifier = Modifier.background(Brush.verticalGradient(c1))
+                                ) {
+                                    item {
+                                        TopAppBar(backgroundColor = animatedBackground) {
+                                            Text(
+                                                "Saved Colors: ${savedColors.size}",
+                                                fontSize = 45.sp,
+                                                textAlign = TextAlign.Center,
+                                                color = fontColor,
+                                            )
+                                        }
+                                    }
+
+                                    items(savedColors) {
+                                        val c = Color("#${it.color}".toColorInt())
                                         Text(
-                                            "Saved Colors: ${savedColors.size}",
+                                            "#${it.color}",
                                             fontSize = 45.sp,
                                             textAlign = TextAlign.Center,
-                                            color = fontColor,
+                                            color = if (c.luminance() > .5f) Color.Black else Color.White,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .combinedClickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = LocalIndication.current,
+                                                    onLongClick = {
+                                                        deleteColor = it
+                                                        showPopup = true
+                                                    },
+                                                    onClick = { hexColor = it.color },
+                                                    onDoubleClick = {
+                                                        hexColor = it.color
+                                                        deleteColor = it
+                                                        showPopup = true
+                                                    }
+                                                )
+                                                .background(c)
                                         )
                                     }
-                                }
-
-                                items(savedColors) {
-                                    val c = Color("#${it.color}".toColorInt())
-                                    Text(
-                                        "#${it.color}",
-                                        fontSize = 45.sp,
-                                        textAlign = TextAlign.Center,
-                                        color = if (c.luminance() > .5f) Color.Black else Color.White,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .combinedClickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = LocalIndication.current,
-                                                onLongClick = {
-                                                    deleteColor = it
-                                                    showPopup = true
-                                                },
-                                                onClick = { hexColor = it.color },
-                                                onDoubleClick = {
-                                                    hexColor = it.color
-                                                    deleteColor = it
-                                                    showPopup = true
-                                                }
-                                            )
-                                            .background(c)
-                                    )
                                 }
                             }
                         },
@@ -242,13 +247,11 @@ class MainActivity : ComponentActivity() {
                             Divider(color = fontColor.copy(alpha = .12f))
 
                             if (showHistoryPopup) {
-
                                 LazyColumn(
                                     verticalArrangement = Arrangement.spacedBy(5.dp),
                                 ) {
                                     items(historyColors.toList()) {
                                         val c = Color("#$it".toColorInt())
-
                                         Card(
                                             onClick = { hexColor = it },
                                             backgroundColor = c,
@@ -264,7 +267,6 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
-
                             } else {
 
                                 colorApi?.name?.value?.let { InfoText(it) }
@@ -283,7 +285,6 @@ class MainActivity : ComponentActivity() {
                                         val m = printer.m?.animateIntValue()
                                         val y = printer.y?.animateIntValue()
                                         val k = printer.k?.animateIntValue()
-
                                         InfoText("CMYK: ($c, $m, $y, $k)")
                                     }
 
@@ -291,7 +292,6 @@ class MainActivity : ComponentActivity() {
                                         val h = printer.h?.animateIntValue()
                                         val s = printer.s?.animateIntValue()
                                         val l = printer.l?.animateIntValue()
-
                                         InfoText("HSL: ($h, $s, $l)")
                                     }
 
@@ -299,7 +299,6 @@ class MainActivity : ComponentActivity() {
                                         val h = printer.h?.animateIntValue()
                                         val s = printer.s?.animateIntValue()
                                         val v = printer.v?.animateIntValue()
-
                                         InfoText("HSV: ($h, $s, $v)")
                                     }
 
@@ -307,7 +306,6 @@ class MainActivity : ComponentActivity() {
                                         val x = printer.X?.animateIntValue()
                                         val y = printer.Y?.animateIntValue()
                                         val z = printer.Z?.animateIntValue()
-
                                         InfoText("XYZ: ($x, $y, $z)")
                                     }
 

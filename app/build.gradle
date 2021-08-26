@@ -67,6 +67,8 @@ dependencies {
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.17.0"
     implementation "com.google.accompanist:accompanist-permissions:0.17.0"
 
+    implementation 'com.github.nanihadesuka:LazyColumnScrollbar:1.0.3'
+
     implementation "androidx.datastore:datastore:1.0.0"
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
