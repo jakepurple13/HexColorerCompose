@@ -128,7 +128,13 @@ class MainActivity : ComponentActivity() {
                 val uiController = rememberSystemUiController()
                 uiController.setStatusBarColor(animatedBackground)
                 uiController.setNavigationBarColor(bottomColor)
-                //uiController.setSystemBarsColor(animatedBackground)
+
+                fun showSnackBar(text: String, duration: SnackbarDuration = SnackbarDuration.Short) {
+                    scope.launch {
+                        scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+                        scaffoldState.snackbarHostState.showSnackbar(text, null, duration)
+                    }
+                }
 
                 var showHistoryPopup by remember { mutableStateOf(false) }
 
@@ -330,7 +336,7 @@ class MainActivity : ComponentActivity() {
                             SnackbarHost(it) { data ->
                                 Snackbar(
                                     elevation = 15.dp,
-                                    backgroundColor = backgroundColor,
+                                    backgroundColor = bottomColor,
                                     contentColor = fontColor,
                                     snackbarData = data
                                 )
@@ -339,12 +345,6 @@ class MainActivity : ComponentActivity() {
                         topBar = {
                             TopAppBar(
                                 title = {
-
-                                    val copyToClipboard: () -> Unit = {
-                                        clipboardManager.setText(AnnotatedString("#$hexColor", ParagraphStyle()))
-                                        scope.launch { scaffoldState.snackbarHostState.showSnackbar("Copied", null, SnackbarDuration.Short) }
-                                    }
-
                                     Text(
                                         "#$hexColor",
                                         color = fontColor,
@@ -354,9 +354,23 @@ class MainActivity : ComponentActivity() {
                                             .combinedClickable(
                                                 interactionSource = remember { MutableInteractionSource() },
                                                 indication = null,
-                                                onLongClick = copyToClipboard,
+                                                onLongClick = {
+                                                    clipboardManager.getText()
+                                                        ?.let { t ->
+                                                            if ("^#(?:[0-9a-fA-F]{3}){1,2}$".toRegex().matches(t.text))
+                                                                t.text.removePrefix("#")
+                                                            else null
+                                                        }
+                                                        ?.let {
+                                                            hexColor = it
+                                                            showSnackBar("Pasted: $it")
+                                                        }
+                                                },
                                                 onClick = {},
-                                                onDoubleClick = copyToClipboard
+                                                onDoubleClick = {
+                                                    clipboardManager.setText(AnnotatedString("#$hexColor", ParagraphStyle()))
+                                                    showSnackBar("Copied")
+                                                }
                                             )
                                     )
                                 },
@@ -365,9 +379,12 @@ class MainActivity : ComponentActivity() {
                                         onClick = {
                                             scope.launch {
                                                 if (savedColors.any { it.color == hexColor }) {
-                                                    savedColors.find { it.color == hexColor }?.let { dao.deleteColor(it) }
+                                                    savedColors.find { it.color == hexColor }
+                                                        ?.let { dao.deleteColor(it) }
+                                                        ?.let { showSnackBar("Deleted: $hexColor") }
                                                 } else {
                                                     dao.insertColor(ColorItem(color = hexColor))
+                                                    showSnackBar("Saved: $hexColor")
                                                 }
                                             }
                                         }
