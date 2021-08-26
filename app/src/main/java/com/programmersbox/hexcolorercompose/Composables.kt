@@ -39,49 +39,57 @@ fun SettingButton(text: String, fontColor: Color, backgroundColor: Color, onClic
 
 @ExperimentalFoundationApi
 @Composable
-fun DigitItem(modifier: Modifier = Modifier, digit: String, fontColor: Color, use3d: Boolean, onPress: (String) -> Unit) {
-    if (use3d) {
-        Box(
-            Modifier
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(bounded = false),
-                ) { onPress(digit) }
-                .then(modifier)
-        ) {
-            Text(
-                digit,
-                color = if (fontColor.luminance() > .5f) Color.Black else Color.White,
-                fontSize = 45.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .offset(2.dp, 2.dp)
-                    .align(Alignment.Center)
-            )
+fun DigitItem(modifier: Modifier = Modifier, digit: String, fontColor: Color, onPress: (String) -> Unit) {
+    Text(
+        digit,
+        color = fontColor,
+        fontSize = 45.sp,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(bounded = false),
+            ) { onPress(digit) }
+            .then(modifier)
+    )
+}
 
-            Text(
-                digit,
-                color = fontColor,
-                fontSize = 45.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-    } else {
+@ExperimentalFoundationApi
+@Composable
+fun Digit3DItem(modifier: Modifier = Modifier, digit: String, fontColor: Color, onPress: (String) -> Unit) {
+    Box(
+        Modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(bounded = false),
+            ) { onPress(digit) }
+            .then(modifier)
+    ) {
+        Text(
+            digit,
+            color = if (fontColor.luminance() > .5f) Color.Black else Color.White,
+            fontSize = 45.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .offset(2.dp, 2.dp)
+                .align(Alignment.Center)
+        )
+
         Text(
             digit,
             color = fontColor,
             fontSize = 45.sp,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(bounded = false),
-                ) { onPress(digit) }
-                .then(modifier)
+            modifier = Modifier.align(Alignment.Center)
         )
     }
 }
+
+@ExperimentalFoundationApi
+@Composable
+fun DigitItem(modifier: Modifier = Modifier, digit: String, fontColor: Color, use3d: Boolean, onPress: (String) -> Unit) =
+    if (use3d) Digit3DItem(modifier, digit, fontColor, onPress) else DigitItem(modifier, digit, fontColor, onPress)
+
 
 @ExperimentalFoundationApi
 @Composable
