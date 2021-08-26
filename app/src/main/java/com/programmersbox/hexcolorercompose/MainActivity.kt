@@ -13,7 +13,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -37,6 +36,7 @@ import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.toColorInt
 import androidx.datastore.preferences.core.edit
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -45,7 +45,6 @@ import com.programmersbox.hexcolorercompose.ui.theme.HexColorerComposeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import my.nanihadesuka.compose.LazyColumnScrollbar
 import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
@@ -124,10 +123,12 @@ class MainActivity : ComponentActivity() {
 
                 val scaffoldState = rememberBottomSheetScaffoldState()
 
+                val bottomColor = Color(ColorUtils.blendARGB(animatedBackground.toArgb(), MaterialTheme.colors.surface.toArgb(), .15f))
+
                 val uiController = rememberSystemUiController()
-                uiController.setStatusBarColor(animatedBackground, backgroundColor.luminance() > .5f)
-                uiController.setNavigationBarColor(animatedBackground, backgroundColor.luminance() > .5f)
-                uiController.setSystemBarsColor(animatedBackground, backgroundColor.luminance() > .5f)
+                uiController.setStatusBarColor(animatedBackground)
+                uiController.setNavigationBarColor(bottomColor)
+                //uiController.setSystemBarsColor(animatedBackground)
 
                 var showHistoryPopup by remember { mutableStateOf(false) }
 
@@ -171,61 +172,51 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Surface(color = animatedBackground) {
-
                     BottomSheetScaffold(
                         scaffoldState = scaffoldState,
                         drawerContent = {
-
                             val c1 = if (savedColors.isNotEmpty()) savedColors.map { Color("#${it.color}".toColorInt()) }
                             else listOf(MaterialTheme.colors.surface, MaterialTheme.colors.surface)
-                            val listState = rememberLazyListState()
-                            LazyColumnScrollbar(
-                                listState = listState,
-                                thumbColor = MaterialTheme.colors.surface.copy(alpha = .5f),
-                                thumbSelectedColor = MaterialTheme.colors.surface
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(5.dp),
+                                modifier = Modifier.background(Brush.verticalGradient(c1))
                             ) {
-                                LazyColumn(
-                                    state = listState,
-                                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                                    modifier = Modifier.background(Brush.verticalGradient(c1))
-                                ) {
-                                    item {
-                                        TopAppBar(backgroundColor = animatedBackground) {
-                                            Text(
-                                                "Saved Colors: ${savedColors.size}",
-                                                fontSize = 45.sp,
-                                                textAlign = TextAlign.Center,
-                                                color = fontColor,
-                                            )
-                                        }
-                                    }
-
-                                    items(savedColors) {
-                                        val c = Color("#${it.color}".toColorInt())
+                                item {
+                                    TopAppBar(backgroundColor = animatedBackground) {
                                         Text(
-                                            "#${it.color}",
+                                            "Saved Colors: ${savedColors.size}",
                                             fontSize = 45.sp,
                                             textAlign = TextAlign.Center,
-                                            color = if (c.luminance() > .5f) Color.Black else Color.White,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .combinedClickable(
-                                                    interactionSource = remember { MutableInteractionSource() },
-                                                    indication = LocalIndication.current,
-                                                    onLongClick = {
-                                                        deleteColor = it
-                                                        showPopup = true
-                                                    },
-                                                    onClick = { hexColor = it.color },
-                                                    onDoubleClick = {
-                                                        hexColor = it.color
-                                                        deleteColor = it
-                                                        showPopup = true
-                                                    }
-                                                )
-                                                .background(c)
+                                            color = fontColor,
                                         )
                                     }
+                                }
+
+                                items(savedColors) {
+                                    val c = Color("#${it.color}".toColorInt())
+                                    Text(
+                                        "#${it.color}",
+                                        fontSize = 45.sp,
+                                        textAlign = TextAlign.Center,
+                                        color = if (c.luminance() > .5f) Color.Black else Color.White,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .combinedClickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = LocalIndication.current,
+                                                onLongClick = {
+                                                    deleteColor = it
+                                                    showPopup = true
+                                                },
+                                                onClick = { hexColor = it.color },
+                                                onDoubleClick = {
+                                                    hexColor = it.color
+                                                    deleteColor = it
+                                                    showPopup = true
+                                                }
+                                            )
+                                            .background(c)
+                                    )
                                 }
                             }
                         },
@@ -318,7 +309,7 @@ class MainActivity : ComponentActivity() {
                             SettingButton(
                                 text = "Show ${if (showHistoryPopup) "Info" else "History"}",
                                 fontColor = fontColor,
-                                backgroundColor = animatedBackground
+                                backgroundColor = Color.Transparent
                             ) { showHistoryPopup = !showHistoryPopup }
 
                             Divider(color = fontColor.copy(alpha = .12f))
@@ -326,14 +317,14 @@ class MainActivity : ComponentActivity() {
                             SettingButton(
                                 text = "Color Picker",
                                 fontColor = fontColor,
-                                backgroundColor = animatedBackground
+                                backgroundColor = Color.Transparent
                             ) { showColorPickerPopup = true }
 
                         },
-                        sheetBackgroundColor = animatedBackground,
+                        sheetBackgroundColor = bottomColor,
                         //drawerBackgroundColor = animatedBackground,
                         sheetElevation = 5.dp,
-                        sheetPeekHeight = 0.dp,
+                        sheetPeekHeight = if (showHistoryPopup) BottomSheetScaffoldDefaults.SheetPeekHeight else 40.dp,
                         backgroundColor = animatedBackground,
                         snackbarHost = {
                             SnackbarHost(it) { data ->
@@ -492,7 +483,6 @@ class MainActivity : ComponentActivity() {
                                 onPressEnd = { hexColor = hexColor.dropLast(1) }
                             )
                         }
-
                     }
                 }
 
