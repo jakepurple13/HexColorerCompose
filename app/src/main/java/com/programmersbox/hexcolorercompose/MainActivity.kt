@@ -136,6 +136,7 @@ class MainActivity : ComponentActivity() {
                                 savedColors = savedColors,
                                 animatedBackground = animatedBackground,
                                 fontColor = fontColor,
+                                backColor = bottomColor,
                                 model = model,
                                 scope = scope,
                                 dao = dao

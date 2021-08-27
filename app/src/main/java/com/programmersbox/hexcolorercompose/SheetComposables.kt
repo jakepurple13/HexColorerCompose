@@ -124,7 +124,7 @@ fun Sheet(
         backgroundColor = Color.Transparent
     ) { model.showColorPickerPopup = true }
 
-    Divider(color = fontColor.copy(alpha = .12f))
+    Divider(modifier = Modifier.padding(vertical = 5.dp), color = fontColor.copy(alpha = .12f))
 
     SettingButton(
         text = "${if (model.showHistoryPopup) "Hide" else "Show"} History",
