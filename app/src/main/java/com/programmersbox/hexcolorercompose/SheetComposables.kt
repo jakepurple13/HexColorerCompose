@@ -56,6 +56,7 @@ fun Sheet(
 
     if (model.showColorPickerPopup) {
         ColorPickerView(
+            currentColor = backgroundColor,
             onColorChange = { model.hexColor = Integer.toHexString(it.toArgb()).drop(2) }
         ) { model.showColorPickerPopup = false }
     }
@@ -157,9 +158,9 @@ fun Sheet(
 }
 
 @Composable
-fun ColorPickerView(onColorChange: (Color) -> Unit, onDismiss: () -> Unit) {
+fun ColorPickerView(currentColor: Color, onColorChange: (Color) -> Unit, onDismiss: () -> Unit) {
 
-    var color by remember { mutableStateOf(Color.Black) }
+    var color by remember { mutableStateOf(currentColor) }
     val contentColor = if (color.luminance() > .5f) Color.Black else Color.White
     val text = "#" + Integer.toHexString(color.toArgb()).uppercase(Locale.ROOT).drop(2)
 
@@ -168,7 +169,7 @@ fun ColorPickerView(onColorChange: (Color) -> Unit, onDismiss: () -> Unit) {
             onColorChange(color)
             onDismiss()
         },
-        text = { ColorPicker(onColorChange = { color = it }) },
+        text = { ColorPicker { color = it } },
         title = {
             Text(
                 "Color Picker: $text",
@@ -176,15 +177,46 @@ fun ColorPickerView(onColorChange: (Color) -> Unit, onDismiss: () -> Unit) {
                 color = contentColor
             )
         },
-        confirmButton = {
-            OutlinedButton(
-                onClick = {
-                    onColorChange(color)
-                    onDismiss()
-                },
-                colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.Transparent),
-                border = BorderStroke(ButtonDefaults.OutlinedBorderSize, contentColor)
-            ) { Text("Done", color = contentColor, style = MaterialTheme.typography.button) }
+        buttons = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.padding(8.dp),
+            ) {
+                LabelSlider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    label = "R",
+                    fontColor = contentColor,
+                    value = color.red * 255,
+                    sliderColor = Color.Red
+                ) { color = color.copy(red = it / 255f) }
+
+                LabelSlider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    label = "G",
+                    fontColor = contentColor,
+                    value = color.green * 255,
+                    sliderColor = Color.Green
+                ) { color = color.copy(green = it / 255f) }
+
+                LabelSlider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    label = "B",
+                    fontColor = contentColor,
+                    value = color.blue * 255,
+                    sliderColor = Color.Blue
+                ) { color = color.copy(blue = it / 255f) }
+
+                OutlinedButton(
+                    onClick = {
+                        onColorChange(color)
+                        onDismiss()
+                    },
+                    colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.Transparent),
+                    border = BorderStroke(ButtonDefaults.OutlinedBorderSize, contentColor),
+                    modifier = Modifier.align(Alignment.End)
+                ) { Text("Done", color = contentColor, style = MaterialTheme.typography.button) }
+            }
         },
         backgroundColor = color
     )
@@ -192,11 +224,66 @@ fun ColorPickerView(onColorChange: (Color) -> Unit, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun ColorPicker(onColorChange: (Color) -> Unit) {
+private fun LabelSlider(
+    modifier: Modifier = Modifier,
+    label: String,
+    fontColor: Color = MaterialTheme.colors.onBackground,
+    value: Float,
+    sliderColor: Color,
+    onSliderChange: (Float) -> Unit
+) {
+    BoxWithConstraints {
+        Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                label,
+                style = MaterialTheme.typography.h6,
+                fontSize = 16.sp,
+                color = fontColor,
+                modifier = Modifier.width(10.dp)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Slider(
+                value = value,
+                onValueChange = onSliderChange,
+                valueRange = 0f..255f,
+                steps = 255,
+                modifier = Modifier
+                    .width(this@BoxWithConstraints.maxWidth - 56.dp),
+                colors = SliderDefaults.colors(
+                    activeTickColor = Color.Unspecified,
+                    activeTrackColor = sliderColor,
+                    thumbColor = sliderColor,
+                    inactiveTickColor = Color.Unspecified
+                )
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Box(
+                Modifier
+                    .width(40.dp)
+                    .align(Alignment.CenterVertically)
+            ) {
+                Text(
+                    value.toInt().toString(),
+                    color = fontColor,
+                    fontSize = 16.sp,
+                    style = MaterialTheme.typography.h6
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ColorPicker(modifier: Modifier = Modifier, onColorChange: (Color) -> Unit) {
     BoxWithConstraints(
         Modifier
             .padding(50.dp)
             .wrapContentSize()
+            .then(modifier)
     ) {
         val diameter = constraints.maxWidth
         var position by remember { mutableStateOf(Offset.Zero) }

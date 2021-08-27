@@ -69,6 +69,8 @@ dependencies {
 
     implementation 'com.github.nanihadesuka:LazyColumnScrollbar:1.0.3'
 
+    implementation "io.github.vanpra.compose-material-dialogs:color:0.5.1"
+
     implementation "androidx.datastore:datastore:1.0.0"
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
