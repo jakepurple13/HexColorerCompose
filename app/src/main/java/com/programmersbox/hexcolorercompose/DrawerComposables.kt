@@ -1,9 +1,7 @@
 package com.programmersbox.hexcolorercompose
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -106,6 +104,10 @@ fun Drawer(
                         }
                     )
                     .background(c)
+                    .border(
+                        width = animateDpAsState(if (model.hexColor == it.color) 5.dp else 0.dp).value,
+                        color = if (c.luminance() > .5f) Color.Black else Color.White
+                    )
             )
         }
     }
