@@ -80,7 +80,7 @@ fun Header(
                             savedColors.find { it.color == mainModel.hexColor }
                                 ?.let { dao.deleteColor(it) }
                                 ?.let { showSnackBar("Deleted: ${mainModel.hexColor}") }
-                        } else {
+                        } else if (mainModel.hexColor.length == 6) {
                             dao.insertColor(ColorItem(color = mainModel.hexColor))
                             showSnackBar("Saved: ${mainModel.hexColor}")
                         }
