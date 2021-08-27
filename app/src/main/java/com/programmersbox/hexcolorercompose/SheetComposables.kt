@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.gestures.forEachGesture
@@ -74,45 +75,45 @@ fun Sheet(
 
     Divider(color = fontColor.copy(alpha = .12f))
 
-        model.colorApi?.name?.value?.let { InfoText(it) }
+    model.colorApi?.name?.value?.let { InfoText(it) }
 
-        val r = (backgroundColor.red * 255).toInt().animateValue()
-        val g = (backgroundColor.green * 255).toInt().animateValue()
-        val b = (backgroundColor.blue * 255).toInt().animateValue()
-        InfoText("RGB: ($r, $g, $b)")
+    val r = (backgroundColor.red * 255).toInt().animateValue()
+    val g = (backgroundColor.green * 255).toInt().animateValue()
+    val b = (backgroundColor.blue * 255).toInt().animateValue()
+    InfoText("RGB: ($r, $g, $b)")
 
-        model.colorApi?.let { api ->
+    model.colorApi?.let { api ->
 
-            api.cmyk?.let { printer ->
-                val c = printer.c?.animateIntValue()
-                val m = printer.m?.animateIntValue()
-                val y = printer.y?.animateIntValue()
-                val k = printer.k?.animateIntValue()
-                InfoText("CMYK: ($c, $m, $y, $k)")
-            }
-
-            api.hsl?.let { printer ->
-                val h = printer.h?.animateIntValue()
-                val s = printer.s?.animateIntValue()
-                val l = printer.l?.animateIntValue()
-                InfoText("HSL: ($h, $s, $l)")
-            }
-
-            api.hsv?.let { printer ->
-                val h = printer.h?.animateIntValue()
-                val s = printer.s?.animateIntValue()
-                val v = printer.v?.animateIntValue()
-                InfoText("HSV: ($h, $s, $v)")
-            }
-
-            api.XYZ?.let { printer ->
-                val x = printer.X?.animateIntValue()
-                val y = printer.Y?.animateIntValue()
-                val z = printer.Z?.animateIntValue()
-                InfoText("XYZ: ($x, $y, $z)")
-            }
-
+        api.cmyk?.let { printer ->
+            val c = printer.c?.animateIntValue()
+            val m = printer.m?.animateIntValue()
+            val y = printer.y?.animateIntValue()
+            val k = printer.k?.animateIntValue()
+            InfoText("CMYK: ($c, $m, $y, $k)")
         }
+
+        api.hsl?.let { printer ->
+            val h = printer.h?.animateIntValue()
+            val s = printer.s?.animateIntValue()
+            val l = printer.l?.animateIntValue()
+            InfoText("HSL: ($h, $s, $l)")
+        }
+
+        api.hsv?.let { printer ->
+            val h = printer.h?.animateIntValue()
+            val s = printer.s?.animateIntValue()
+            val v = printer.v?.animateIntValue()
+            InfoText("HSV: ($h, $s, $v)")
+        }
+
+        api.XYZ?.let { printer ->
+            val x = printer.X?.animateIntValue()
+            val y = printer.Y?.animateIntValue()
+            val z = printer.Z?.animateIntValue()
+            InfoText("XYZ: ($x, $y, $z)")
+        }
+
+    }
 
     Divider(color = fontColor.copy(alpha = .12f))
 
@@ -163,30 +164,29 @@ fun ColorPickerView(onColorChange: (Color) -> Unit, onDismiss: () -> Unit) {
     val text = "#" + Integer.toHexString(color.toArgb()).uppercase(Locale.ROOT).drop(2)
 
     AlertDialog(
-        onDismissRequest = onDismiss,
-        text = {
-            ColorPicker(
-                onColorChange = {
-                    color = it
-                    onColorChange(it)
-                }
-            )
+        onDismissRequest = {
+            onColorChange(color)
+            onDismiss()
         },
+        text = { ColorPicker(onColorChange = { color = it }) },
         title = {
             Text(
                 "Color Picker: $text",
-                style = MaterialTheme.typography.h6
+                style = MaterialTheme.typography.h6,
+                color = contentColor
             )
         },
         confirmButton = {
             OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(backgroundColor = color),
+                onClick = {
+                    onColorChange(color)
+                    onDismiss()
+                },
+                colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.Transparent),
                 border = BorderStroke(ButtonDefaults.OutlinedBorderSize, contentColor)
-            ) {
-                Text("Done", color = contentColor, style = MaterialTheme.typography.button)
-            }
+            ) { Text("Done", color = contentColor, style = MaterialTheme.typography.button) }
         },
+        backgroundColor = color
     )
 
 }
@@ -229,8 +229,12 @@ fun ColorPicker(onColorChange: (Color) -> Unit) {
         }
 
         Box(Modifier.wrapContentSize()) {
-            Image(modifier = inputModifier, contentDescription = null, bitmap = colorWheel.image)
             val color = colorWheel.colorForPosition(position)
+            Image(
+                modifier = inputModifier.border(2.dp, if (color.luminance() > .5f) Color.Black else Color.White, CircleShape),
+                contentDescription = null,
+                bitmap = colorWheel.image
+            )
             if (color.isSpecified) {
                 Magnifier(visible = hasInput, position = position, color = color)
             }
