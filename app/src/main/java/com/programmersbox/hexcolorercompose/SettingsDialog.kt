@@ -97,9 +97,9 @@ fun SettingsDialog(
                             )
                         }
 
-                        val parentState = remember(keypad, topbar) {
-                            if (keypad && topbar) ToggleableState.On
-                            else if (!keypad && !topbar) ToggleableState.Off
+                        val parentState = remember(keypad, topbar, sheet, drawer, settings3d) {
+                            if (keypad && topbar && sheet && drawer && settings3d) ToggleableState.On
+                            else if (!keypad && !topbar && !sheet && !drawer && !settings3d) ToggleableState.Off
                             else ToggleableState.Indeterminate
                         }
 
