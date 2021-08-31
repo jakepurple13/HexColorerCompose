@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
         val topbar = dataStore.data.map { it[TOPBAR_3D] ?: false }
         val bottomSheet = dataStore.data.map { it[SHEET_3D] ?: false }
         val drawer = dataStore.data.map { it[DRAWER_3D] ?: false }
+        val settings3d = dataStore.data.map { it[SETTINGS_3D] ?: false }
 
         setContent {
 
@@ -103,10 +104,11 @@ class MainActivity : ComponentActivity() {
                 val topbarFlow by topbar.collectAsState(initial = false)
                 val sheetFlow by bottomSheet.collectAsState(initial = false)
                 val drawerFlow by drawer.collectAsState(initial = false)
+                val settings3dFlow by settings3d.collectAsState(initial = false)
 
                 SettingsDialog(
                     settingsDialogModel = settingsDialogModel,
-                    use3d = use3dFlow, keypad = keypadFlow, topbar = topbarFlow, sheet = sheetFlow, drawer = drawerFlow,
+                    use3d = use3dFlow, keypad = keypadFlow, topbar = topbarFlow, sheet = sheetFlow, drawer = drawerFlow, settings3d = settings3dFlow,
                     dataStore = dataStore,
                     backgroundColor = backgroundColor,
                     fontColor = fontColor,

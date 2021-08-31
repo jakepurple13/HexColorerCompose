@@ -2,10 +2,7 @@ package com.programmersbox.hexcolorercompose
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -14,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -30,7 +29,7 @@ class SettingsDialogModel(
 @Composable
 fun SettingsDialog(
     settingsDialogModel: SettingsDialogModel,
-    use3d: Boolean, keypad: Boolean, topbar: Boolean, sheet: Boolean, drawer: Boolean,
+    use3d: Boolean, keypad: Boolean, topbar: Boolean, sheet: Boolean, drawer: Boolean, settings3d: Boolean,
     dataStore: DataStore<Preferences>,
     backgroundColor: Color,
     fontColor: Color,
@@ -41,7 +40,31 @@ fun SettingsDialog(
 
         AlertDialog(
             onDismissRequest = { settingsDialogModel.showSettings = false },
-            title = { Text("Settings", style = MaterialTheme.typography.h6, color = fontColor) },
+            title = {
+                if (use3d && settings3d) {
+                    Box {
+                        Text(
+                            "Settings",
+                            color = if (fontColor.luminance() > .5f) Color.Black else Color.White,
+                            style = MaterialTheme.typography.h6,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .offset(OFFSET_3D.first, OFFSET_3D.second)
+                                .align(Alignment.Center)
+                        )
+
+                        Text(
+                            "Settings",
+                            color = fontColor,
+                            style = MaterialTheme.typography.h6,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                } else {
+                    Text("Settings", style = MaterialTheme.typography.h6, color = fontColor)
+                }
+            },
             text = {
                 LazyColumn(
                     modifier = Modifier.animateContentSize()
@@ -52,7 +75,17 @@ fun SettingsDialog(
                         Box(
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Use 3D Digits", color = fontColor, modifier = Modifier.align(Alignment.CenterStart))
+                            if (use3d && settings3d) {
+                                Text3D(
+                                    modifier = Modifier.align(Alignment.CenterStart),
+                                    text = "Use 3D Digits",
+                                    fontColor = fontColor,
+                                    fontSize = TextUnit.Unspecified
+                                )
+                            } else {
+                                Text("Use 3D Digits", color = fontColor, modifier = Modifier.align(Alignment.CenterStart))
+                            }
+
                             Switch(
                                 checked = use3d,
                                 onCheckedChange = { scope.launch { dataStore.edit { s -> s[USE_3D] = it } } },
@@ -71,7 +104,8 @@ fun SettingsDialog(
                         }
 
                         Column(
-                            modifier = Modifier.padding(start = 5.dp)
+                            modifier = Modifier.padding(start = 5.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
 
                             val checkboxColors = CheckboxDefaults.colors(
@@ -83,7 +117,16 @@ fun SettingsDialog(
                             Box(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("3D Options", color = fontColor, modifier = Modifier.align(Alignment.CenterStart))
+                                if (use3d && settings3d) {
+                                    Text3D(
+                                        modifier = Modifier.align(Alignment.CenterStart),
+                                        text = "3D Options",
+                                        fontColor = fontColor,
+                                        fontSize = TextUnit.Unspecified
+                                    )
+                                } else {
+                                    Text("3D Options", color = fontColor, modifier = Modifier.align(Alignment.CenterStart))
+                                }
                                 TriStateCheckbox(
                                     state = parentState,
                                     onClick = {
@@ -92,6 +135,7 @@ fun SettingsDialog(
                                         scope.launch { dataStore.edit { s -> s[TOPBAR_3D] = state } }
                                         scope.launch { dataStore.edit { s -> s[SHEET_3D] = state } }
                                         scope.launch { dataStore.edit { s -> s[DRAWER_3D] = state } }
+                                        scope.launch { dataStore.edit { s -> s[SETTINGS_3D] = state } }
                                     },
                                     colors = checkboxColors,
                                     modifier = Modifier.align(Alignment.CenterEnd),
@@ -103,6 +147,7 @@ fun SettingsDialog(
                                 text = "Keypad",
                                 fontColor = fontColor,
                                 checkboxColors = checkboxColors,
+                                use3d = settings3d,
                                 state = keypad,
                                 enabled = use3d
                             ) { scope.launch { dataStore.edit { s -> s[KEYPAD_3D] = it } } }
@@ -111,6 +156,7 @@ fun SettingsDialog(
                                 text = "Topbar",
                                 fontColor = fontColor,
                                 checkboxColors = checkboxColors,
+                                use3d = settings3d,
                                 state = topbar,
                                 enabled = use3d
                             ) { scope.launch { dataStore.edit { s -> s[TOPBAR_3D] = it } } }
@@ -119,6 +165,7 @@ fun SettingsDialog(
                                 text = "Bottom Sheet",
                                 fontColor = fontColor,
                                 checkboxColors = checkboxColors,
+                                use3d = settings3d,
                                 state = sheet,
                                 enabled = use3d
                             ) { scope.launch { dataStore.edit { s -> s[SHEET_3D] = it } } }
@@ -127,9 +174,19 @@ fun SettingsDialog(
                                 text = "Drawer",
                                 fontColor = fontColor,
                                 checkboxColors = checkboxColors,
+                                use3d = settings3d,
                                 state = drawer,
                                 enabled = use3d
                             ) { scope.launch { dataStore.edit { s -> s[DRAWER_3D] = it } } }
+
+                            CheckboxSetting(
+                                text = "Settings",
+                                fontColor = fontColor,
+                                checkboxColors = checkboxColors,
+                                use3d = settings3d,
+                                state = settings3d,
+                                enabled = use3d
+                            ) { scope.launch { dataStore.edit { s -> s[SETTINGS_3D] = it } } }
 
                         }
 
@@ -142,7 +199,32 @@ fun SettingsDialog(
                     onClick = { settingsDialogModel.showSettings = false },
                     colors = ButtonDefaults.outlinedButtonColors(backgroundColor = backgroundColor),
                     border = BorderStroke(ButtonDefaults.OutlinedBorderSize, fontColor)
-                ) { Text("Done", color = fontColor, style = MaterialTheme.typography.button) }
+                ) {
+                    if (use3d && settings3d) {
+                        Box {
+                            Text(
+                                "Done",
+                                color = if (fontColor.luminance() > .5f) Color.Black else Color.White,
+                                style = MaterialTheme.typography.button,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .offset(OFFSET_3D.first, OFFSET_3D.second)
+                                    .align(Alignment.Center)
+                            )
+
+                            Text(
+                                "Done",
+                                color = fontColor,
+                                style = MaterialTheme.typography.button,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
+                    } else {
+                        Text("Done", color = fontColor, style = MaterialTheme.typography.button)
+                    }
+
+                }
             },
             backgroundColor = backgroundColor,
         )
@@ -152,13 +234,25 @@ fun SettingsDialog(
 }
 
 @Composable
-fun CheckboxSetting(text: String, fontColor: Color, checkboxColors: CheckboxColors, state: Boolean, enabled: Boolean, onCheck: (Boolean) -> Unit) {
+fun CheckboxSetting(
+    text: String,
+    fontColor: Color,
+    checkboxColors: CheckboxColors,
+    state: Boolean,
+    use3d: Boolean,
+    enabled: Boolean,
+    onCheck: (Boolean) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp)
     ) {
-        Text(text, color = fontColor, modifier = Modifier.align(Alignment.CenterStart))
+        if (use3d && state && enabled) {
+            Text3D(modifier = Modifier.align(Alignment.CenterStart), text = text, fontColor = fontColor, fontSize = TextUnit.Unspecified)
+        } else {
+            Text(text, color = fontColor, modifier = Modifier.align(Alignment.CenterStart))
+        }
         Checkbox(
             checked = state,
             onCheckedChange = onCheck,

@@ -46,6 +46,7 @@ val TOPBAR_3D = booleanPreferencesKey("topbar_3d")
 val KEYPAD_3D = booleanPreferencesKey("keypad_3d")
 val SHEET_3D = booleanPreferencesKey("sheet_3d")
 val DRAWER_3D = booleanPreferencesKey("drawer_3d")
+val SETTINGS_3D = booleanPreferencesKey("settings_3d")
 
 data class ColorApi(
     val hex: Hex?,
