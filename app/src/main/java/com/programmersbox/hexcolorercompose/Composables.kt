@@ -59,6 +59,8 @@ fun DigitItem(modifier: Modifier = Modifier, digit: String, fontColor: Color, on
     )
 }
 
+val OFFSET_3D = 1.dp to 1.dp
+
 @ExperimentalFoundationApi
 @Composable
 fun Digit3DItem(modifier: Modifier = Modifier, digit: String, fontColor: Color, onPress: (String) -> Unit) {
@@ -76,7 +78,7 @@ fun Digit3DItem(modifier: Modifier = Modifier, digit: String, fontColor: Color, 
             fontSize = 45.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier
-                .offset(2.dp, 2.dp)
+                .offset(OFFSET_3D.first, OFFSET_3D.second)
                 .align(Alignment.Center)
         )
 
@@ -229,7 +231,7 @@ fun Text3D(modifier: Modifier = Modifier, text: String, fontColor: Color, fontSi
             fontSize = fontSize,
             textAlign = TextAlign.Center,
             modifier = Modifier
-                .offset(2.dp, 2.dp)
+                .offset(OFFSET_3D.first, OFFSET_3D.second)
                 .align(Alignment.Center)
         )
 

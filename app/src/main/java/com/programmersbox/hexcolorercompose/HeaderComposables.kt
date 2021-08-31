@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -108,7 +107,7 @@ fun Header(
                             contentDescription = null,
                             tint = if (fontColor.luminance() > .5f) Color.Black else Color.White,
                             modifier = Modifier
-                                .offset(2.dp, 2.dp)
+                                .offset(OFFSET_3D.first, OFFSET_3D.second)
                                 .rotate(animateFloatAsState(targetValue = if (isSaved) 135f else 0f).value)
                         )
 
@@ -167,7 +166,7 @@ fun IconButton3d(use3d: Boolean, icon: ImageVector, fontColor: Color) {
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (fontColor.luminance() > .5f) Color.Black else Color.White,
-                modifier = Modifier.offset(2.dp, 2.dp)
+                modifier = Modifier.offset(OFFSET_3D.first, OFFSET_3D.second)
             )
 
             Icon(
