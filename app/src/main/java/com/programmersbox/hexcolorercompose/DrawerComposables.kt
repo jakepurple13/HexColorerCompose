@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -36,6 +37,7 @@ fun Drawer(
     fontColor: Color,
     backColor: Color,
     model: MainModel,
+    use3d: Boolean,
     scope: CoroutineScope,
     dao: ColorDao
 ) {
@@ -73,12 +75,16 @@ fun Drawer(
     Scaffold(
         topBar = {
             TopAppBar(backgroundColor = animatedBackground) {
-                Text(
-                    "Saved Colors: ${savedColors.size}",
-                    fontSize = 45.sp,
-                    textAlign = TextAlign.Center,
-                    color = fontColor,
-                )
+                if (use3d) {
+                    Text3D(text = "Saved Colors: ${savedColors.size}", fontColor = fontColor)
+                } else {
+                    Text(
+                        "Saved Colors: ${savedColors.size}",
+                        fontSize = 45.sp,
+                        textAlign = TextAlign.Center,
+                        color = fontColor,
+                    )
+                }
             }
         },
         backgroundColor = backColor,
@@ -118,13 +124,21 @@ fun Drawer(
                     ),
                     elevation = 5.dp
                 ) {
-                    Box {
-                        Text(
-                            "#${it.color}",
-                            textAlign = TextAlign.Center,
-                            color = if (c.luminance() > .5f) Color.Black else Color.White,
-                            modifier = Modifier.align(Alignment.Center)
+                    if (use3d) {
+                        Text3D(
+                            text = "#${it.color}",
+                            fontColor = if (c.luminance() > .5f) Color.Black else Color.White,
+                            fontSize = TextUnit.Unspecified
                         )
+                    } else {
+                        Box {
+                            Text(
+                                "#${it.color}",
+                                textAlign = TextAlign.Center,
+                                color = if (c.luminance() > .5f) Color.Black else Color.White,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
                     }
                 }
             }

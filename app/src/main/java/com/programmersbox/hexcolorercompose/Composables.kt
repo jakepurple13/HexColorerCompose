@@ -17,23 +17,28 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun SettingButton(text: String, fontColor: Color, backgroundColor: Color, onClick: () -> Unit = {}) {
+fun SettingButton(text: String, fontColor: Color, backgroundColor: Color, use3d: Boolean, onClick: () -> Unit = {}) {
     OutlinedButton(
         onClick = onClick,
         border = BorderStroke(1.dp, fontColor),
         modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.outlinedButtonColors(backgroundColor = backgroundColor)
     ) {
-        Text(
-            text,
-            color = fontColor,
-            fontSize = 30.sp,
-            textAlign = TextAlign.Center,
-        )
+        if (use3d) {
+            Text3D(text = text, fontColor = fontColor, fontSize = 30.sp)
+        } else {
+            Text(
+                text,
+                color = fontColor,
+                fontSize = 30.sp,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -125,7 +130,7 @@ fun DigitRow(
 @Composable
 fun Keypad(
     paddingValues: PaddingValues,
-    settingsDialogModel: SettingsDialogModel,
+    use3d: Boolean,
     fontColor: Color,
     model: MainModel,
     onPress: (String) -> Unit
@@ -145,7 +150,7 @@ fun Keypad(
             start = "D",
             center = "E",
             end = "F",
-            use3d = settingsDialogModel.use3d,
+            use3d = use3d,
             fontColor = fontColor,
             onPressStart = onPress,
             onPressCenter = onPress,
@@ -157,7 +162,7 @@ fun Keypad(
             start = "A",
             center = "B",
             end = "C",
-            use3d = settingsDialogModel.use3d,
+            use3d = use3d,
             fontColor = fontColor,
             onPressStart = onPress,
             onPressCenter = onPress,
@@ -169,7 +174,7 @@ fun Keypad(
             start = "7",
             center = "8",
             end = "9",
-            use3d = settingsDialogModel.use3d,
+            use3d = use3d,
             fontColor = fontColor,
             onPressStart = onPress,
             onPressCenter = onPress,
@@ -181,7 +186,7 @@ fun Keypad(
             start = "4",
             center = "5",
             end = "6",
-            use3d = settingsDialogModel.use3d,
+            use3d = use3d,
             fontColor = fontColor,
             onPressStart = onPress,
             onPressCenter = onPress,
@@ -193,7 +198,7 @@ fun Keypad(
             start = "1",
             center = "2",
             end = "3",
-            use3d = settingsDialogModel.use3d,
+            use3d = use3d,
             fontColor = fontColor,
             onPressStart = onPress,
             onPressCenter = onPress,
@@ -205,11 +210,35 @@ fun Keypad(
             start = "⊗",
             center = "0",
             end = "⌫",
-            use3d = settingsDialogModel.use3d,
+            use3d = use3d,
             fontColor = fontColor,
             onPressStart = { model.hexColor = "" },
             onPressCenter = onPress,
             onPressEnd = { model.hexColor = model.hexColor.dropLast(1) }
+        )
+    }
+}
+
+
+@Composable
+fun Text3D(modifier: Modifier = Modifier, text: String, fontColor: Color, fontSize: TextUnit = 45.sp) {
+    Box(modifier) {
+        Text(
+            text,
+            color = if (fontColor.luminance() > .5f) Color.Black else Color.White,
+            fontSize = fontSize,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .offset(2.dp, 2.dp)
+                .align(Alignment.Center)
+        )
+
+        Text(
+            text,
+            color = fontColor,
+            fontSize = fontSize,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.align(Alignment.Center)
         )
     }
 }

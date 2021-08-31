@@ -21,10 +21,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.programmersbox.hexcolorercompose.ui.theme.HexColorerComposeTheme
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
     @ExperimentalPermissionsApi
@@ -49,6 +47,10 @@ class MainActivity : ComponentActivity() {
             }
 
         val use3d = dataStore.data.map { it[USE_3D] ?: false }
+        val keypad = dataStore.data.map { it[KEYPAD_3D] ?: false }
+        val topbar = dataStore.data.map { it[TOPBAR_3D] ?: false }
+        val bottomSheet = dataStore.data.map { it[SHEET_3D] ?: false }
+        val drawer = dataStore.data.map { it[DRAWER_3D] ?: false }
 
         setContent {
 
@@ -94,15 +96,17 @@ class MainActivity : ComponentActivity() {
                     animationSpec = tween(500)
                 ).value
 
-                val settingsDialogModel = remember {
-                    SettingsDialogModel(
-                        showSettings = false,
-                        use3d = runBlocking { use3d.first() }
-                    )
-                }
+                val settingsDialogModel = remember { SettingsDialogModel(showSettings = false) }
+
+                val use3dFlow by use3d.collectAsState(initial = false)
+                val keypadFlow by keypad.collectAsState(initial = false)
+                val topbarFlow by topbar.collectAsState(initial = false)
+                val sheetFlow by bottomSheet.collectAsState(initial = false)
+                val drawerFlow by drawer.collectAsState(initial = false)
 
                 SettingsDialog(
                     settingsDialogModel = settingsDialogModel,
+                    use3d = use3dFlow, keypad = keypadFlow, topbar = topbarFlow, sheet = sheetFlow, drawer = drawerFlow,
                     dataStore = dataStore,
                     backgroundColor = backgroundColor,
                     fontColor = fontColor,
@@ -139,7 +143,8 @@ class MainActivity : ComponentActivity() {
                                 backColor = bottomColor,
                                 model = model,
                                 scope = scope,
-                                dao = dao
+                                dao = dao,
+                                use3d = drawerFlow && use3dFlow
                             )
                         },
                         sheetContent = {
@@ -147,7 +152,8 @@ class MainActivity : ComponentActivity() {
                                 model = model,
                                 historyColors = historyColors,
                                 fontColor = fontColor,
-                                backgroundColor = backgroundColor
+                                backgroundColor = backgroundColor,
+                                use3d = sheetFlow && use3dFlow
                             )
                         },
                         sheetBackgroundColor = bottomColor,
@@ -176,13 +182,14 @@ class MainActivity : ComponentActivity() {
                                 savedColors = savedColors,
                                 scaffoldState = scaffoldState,
                                 dao = dao,
+                                use3d = topbarFlow && use3dFlow,
                                 showSnackBar = ::showSnackBar
                             )
                         }
                     ) {
                         Keypad(
                             paddingValues = it,
-                            settingsDialogModel = settingsDialogModel,
+                            use3d = keypadFlow && use3dFlow,
                             fontColor = fontColor,
                             model = model,
                             onPress = onPress

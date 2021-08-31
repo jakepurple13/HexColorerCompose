@@ -52,6 +52,7 @@ fun Sheet(
     historyColors: Set<String>,
     fontColor: Color,
     backgroundColor: Color,
+    use3d: Boolean
 ) {
 
     if (model.showColorPickerPopup) {
@@ -65,13 +66,17 @@ fun Sheet(
 
     @Composable
     fun InfoText(text: String) {
-        Text(
-            text,
-            fontSize = infoFontSize,
-            textAlign = TextAlign.Center,
-            color = fontColor,
-            modifier = Modifier.padding(start = 5.dp)
-        )
+        if (use3d) {
+            Text3D(modifier = Modifier.padding(start = 5.dp), text = text, fontColor = fontColor, fontSize = infoFontSize)
+        } else {
+            Text(
+                text,
+                fontSize = infoFontSize,
+                textAlign = TextAlign.Center,
+                color = fontColor,
+                modifier = Modifier.padding(start = 5.dp)
+            )
+        }
     }
 
     Divider(color = fontColor.copy(alpha = .12f))
@@ -121,7 +126,8 @@ fun Sheet(
     SettingButton(
         text = "Color Picker",
         fontColor = fontColor,
-        backgroundColor = Color.Transparent
+        backgroundColor = Color.Transparent,
+        use3d = use3d
     ) { model.showColorPickerPopup = true }
 
     Divider(modifier = Modifier.padding(vertical = 5.dp), color = fontColor.copy(alpha = .12f))
@@ -129,7 +135,8 @@ fun Sheet(
     SettingButton(
         text = "${if (model.showHistoryPopup) "Hide" else "Show"} History",
         fontColor = fontColor,
-        backgroundColor = Color.Transparent
+        backgroundColor = Color.Transparent,
+        use3d = use3d
     ) { model.showHistoryPopup = !model.showHistoryPopup }
 
     if (model.showHistoryPopup) {
@@ -144,12 +151,16 @@ fun Sheet(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(CornerSize(0.dp))
                 ) {
-                    Text(
-                        "#$it",
-                        fontSize = 45.sp,
-                        textAlign = TextAlign.Center,
-                        color = if (c.luminance() > .5f) Color.Black else Color.White,
-                    )
+                    if (use3d) {
+                        Text3D(text = "#$it", fontColor = if (c.luminance() > .5f) Color.Black else Color.White, fontSize = 45.sp)
+                    } else {
+                        Text(
+                            "#$it",
+                            fontSize = 45.sp,
+                            textAlign = TextAlign.Center,
+                            color = if (c.luminance() > .5f) Color.Black else Color.White,
+                        )
+                    }
                 }
             }
         }
